@@ -89,10 +89,21 @@ p.lead{
   color: #0000aa;
   font-size: 0.9rem;
 }
-.scale button:hover, .scale button:focus-visible{
+/* hoverはマウス操作のときだけ（タッチだと前の問題の変色が残るため） */
+@media (hover: hover) and (pointer: fine){
+  .scale button:hover{
+    background: #0000aa;
+    color: #ffffff;
+  }
+}
+.scale button:focus-visible,
+.scale button:active{
   background: #0000aa;
   color: #ffffff;
   outline: none;
+}
+.scale button{
+  -webkit-tap-highlight-color: transparent;
 }
 .scale .b1, .scale .b6{ transform: scale(1.15); }
 .scale .b3, .scale .b4{ transform: scale(0.85); }
@@ -223,6 +234,7 @@ summary{
 .scale .opt button{
   flex: none;
   width: 100%;
+  max-width: 44px;
 }
 .opt small{
   font-size: 0.65rem;
@@ -233,3 +245,8 @@ summary{
 .scale .ex{ transform: scale(1.15); }
 .scale .in6{ transform: scale(0.85); }
 .pair.one{ grid-template-columns: 1fr; }
+
+@media(max-width: 520px){
+  .scale .opt button{ max-width: 34px; }
+  .scale{ gap: 2px; }
+}
