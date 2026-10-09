@@ -31,7 +31,15 @@ jobs:
 
       - name: Invalidate CloudFront Cache
         run: |
+          distribution_id="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
+          distribution_id="$(echo "${distribution_id}" | tr -d '[:space:]')"
+          distribution_id="${distribution_id##*/}"
+
+          if [ -z "${distribution_id}" ]; then
+            echo "CLOUDFRONT_DISTRIBUTION_ID secret is empty or invalid."
+            exit 1
+          fi
+
           aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*" \
-            --region us-east-1
+            --distribution-id "${distribution_id}" \
+            --paths "/*"
