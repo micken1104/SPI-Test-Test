@@ -1,0 +1,235 @@
+:root{
+  box-sizing: border-box;
+  padding: 0;
+}
+html{
+  scroll-padding-top: 0px;
+}
+*{
+  box-sizing: border-box;
+}
+body{
+  margin: 0;
+  background: #ffffff;
+  color: #000000;
+  font-family: "MS PGothic", "Osaka", "Hiragino Kaku Gothic ProN", sans-serif;
+  font-size: 14px;
+  line-height: 1.5;
+}
+main{
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 10px;
+}
+h1{
+  font-size: 1.2rem;
+  margin: 4px 0 2px;
+  border-bottom: 2px solid #000000;
+  padding-bottom: 2px;
+}
+p.lead{
+  color: #666666;
+  margin: 0 0 10px;
+  font-size: 0.85rem;
+}
+.card{
+  background: #f8f8f8;
+  border: 1px solid #999999;
+  border-radius: 0px;
+  padding: 10px;
+  margin-bottom: 10px;
+}
+.bar{
+  height: 12px;
+  background: #cccccc;
+  border: 1px inset #666666;
+  border-radius: 0px;
+  overflow: hidden;
+  margin-bottom: 4px;
+}
+.bar i{
+  display: block;
+  height: 100%;
+  background: #0000aa;
+}
+.tbar i{
+  background: #006600;
+}
+.pair{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin: 8px 0 12px;
+}
+.pair div{
+  padding: 8px;
+  border: 1px solid #999999;
+  background: #ffffff;
+  border-radius: 0px;
+  min-height: 50px;
+  display: flex;
+  align-items: center;
+}
+.scale{
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  justify-content: center;
+}
+/* 6段階ボタンは丸 */
+.scale button{
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 64px;
+  padding: 0;
+  border-radius: 50%;
+  border: 2px solid #0000aa;
+  background: #ffffff;
+  cursor: pointer;
+  color: #0000aa;
+  font-size: 0.9rem;
+}
+.scale button:hover, .scale button:focus-visible{
+  background: #0000aa;
+  color: #ffffff;
+  outline: none;
+}
+.scale .b1, .scale .b6{ transform: scale(1.15); }
+.scale .b3, .scale .b4{ transform: scale(0.85); }
+.lab{
+  display: flex;
+  justify-content: space-between;
+  color: #666666;
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+.btn{
+  padding: 4px 10px;
+  border-radius: 0px;
+  border: 1px solid #666666;
+  background: #dddddd;
+  color: #000000;
+  cursor: pointer;
+  font: inherit;
+  margin-right: 6px;
+}
+.btn:disabled{
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+.btn.pri{
+  background: #0000aa;
+  color: #ffffff;
+  border-color: #000066;
+}
+.big{
+  font-size: 1.8rem;
+  font-weight: bold;
+  line-height: 1.1;
+}
+.ok{ color: #006600; }
+.warn{ color: #995500; }
+.bad{ color: #cc0000; }
+.row{
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 4px 0;
+  font-size: 0.85rem;
+}
+.row span:first-child{
+  flex: 0 0 6.5em;
+}
+.row .w{
+  flex: 1;
+  height: 10px;
+  background: #cccccc;
+  border: 1px inset #666666;
+  border-radius: 0px;
+  overflow: hidden;
+}
+.row .w i{
+  display: block;
+  height: 100%;
+  background: #0000aa;
+}
+.tbl{
+  overflow-x: auto;
+}
+table{
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  min-width: 100%;
+  background: #ffffff;
+}
+td, th{
+  border: 1px solid #999999;
+  padding: 3px 5px;
+  text-align: center;
+}
+th{
+  background: #cccccc;
+}
+.ref td{
+  text-align: left;
+}
+.ref tr.on td{
+  background: #ffffcc;
+  font-weight: bold;
+}
+.sm{
+  font-size: 0.8rem;
+  color: #666666;
+}
+ul{
+  padding-left: 1.2em;
+}
+label{
+  margin-right: 10px;
+  white-space: nowrap;
+}
+details{
+  margin-top: 8px;
+}
+summary{
+  cursor: pointer;
+  color: #0000aa;
+  text-decoration: underline;
+}
+.explain li{
+  margin-bottom: 4px;
+  font-size: 0.85rem;
+}
+.explain code{
+  background: #eeeeee;
+  border: 1px solid #cccccc;
+  padding: 1px 4px;
+  border-radius: 0px;
+}
+@media(max-width: 520px){
+  .pair{
+    grid-template-columns: 1fr;
+  }
+}
+/* 選択肢（丸ボタン＋ラベル） */
+.opt{
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  max-width: 90px;
+}
+.scale .opt button{
+  flex: none;
+  width: 100%;
+}
+.opt small{
+  font-size: 0.65rem;
+  color: #666666;
+  text-align: center;
+  line-height: 1.2;
+}
+.scale .ex{ transform: scale(1.15); }
+.scale .in6{ transform: scale(0.85); }
+.pair.one{ grid-template-columns: 1fr; }

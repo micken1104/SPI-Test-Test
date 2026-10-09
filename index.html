@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>SPI風 性格検査 一貫性トレーニング（階層AHP）</title>
+<link rel="stylesheet" href="style.css">
+</head><body><main>
+<h1>SPI風 性格検査 一貫性トレーニング</h1>
+<p class="lead">SPI3の性格検査（4側面・18尺度、3部構成）を模したトレーニングです。回答から階層AHPの整合性（H）、言い換え再出題の一致度、単独評価との一致、虚偽尺度を確認します。</p>
+<div id="app"></div>
+</main>
+<script>
+// ===== 検査の特性表（概要・仕事は原文のまま）=====
+const REF={
+"性格特徴":{h:["性格特徴","概要","高いと向いている仕事"],r:`社会的内向性|対人面で控えめか|1人で黙々と進められる仕事
+内省性|自分の考えや行動を深く振り返る傾向があるか|計画を立ててじっくりと分析や調査を行う仕事
+身体活動性|体を動かすことや活動的な行動が好きか|動き回ることが多い仕事
+持続性|物事を粘り強く続けられるか|長期間コツコツと続ける仕事
+慎重性|計画的に物事を進める傾向があるか|ミスが許されない慎重さが求められる仕事
+達成意欲|高い目標を掲げて努力する傾向があるか|成果主義の傾向が強い仕事
+活動意欲|新しいことに積極的に取り組む姿勢があるか|変化や挑戦が多い仕事
+敏感性|周囲の変化や人の気持ちに敏感か|人の気持ちをくみ取る必要がある仕事
+自責性|失敗や問題を自分の責任と感じやすいか|誰かをサポートしたり、自分のペースで働ける仕事
+気分性|感情や気分が行動に影響しやすいか|気持ちを伝えることが大切な仕事
+独自性|独特の考え方や価値観をもっているか|新しいアイデアを発信する仕事
+自信性|自分の能力や判断に自信をもてるか|自ら判断し決断する仕事
+高揚性|気分が高まりやすく、前向きな傾向があるか|明るく活発な雰囲気が求められる仕事
+従順性|他人の意見や指示に従いやすいか|指示や手順通りに動くことが求められる仕事
+回避性|対立やリスクを避ける傾向があるか|トラブルや衝突が少ない仕事
+批判性|他人の意見や行動に対して批判的になりやすいか|問題点や改善点をチェックする仕事
+自己尊重性|自分の意見や価値観を大切にできるか|自分の考えを発信する仕事
+懐疑思考性|物事を疑ってかかる傾向が強いか|事実確認や検証が重要な仕事`},
+"職務適応性":{h:["職務適応性","概要","高いと向いている仕事"],r:`関係構築|人に働きかけ、多くの人と関係を築く|多様な人と関わる機会が多い仕事
+交渉・折衝|人と関わる力、人と交渉する力|人とコミュニケーションを取り、合意形成を図る仕事
+リーダシップ|集団をまとめ、方向性を示す力|チームや組織を率いて方向性を示す仕事
+チームワーク|周囲と協力し、チームで成果を出す力|メンバーと協力しながら進める仕事
+サポート|他者を気遣い、支援する姿勢|周囲の人を気遣い、支援する仕事
+フットワーク|機動力をもち、積極的に動く力|迅速に動き回り、対応が求められる仕事
+スピード対応|迅速に物事を処理し、対応できる力|即時対応や迅速な判断が必要な仕事
+変化対応|新しい状況や変化に柔軟に適応する力|変化が多く、新しいことに挑戦する仕事
+自律的遂行|自分で考え、主体的に仕事を進める力|自ら判断し、計画的に進める仕事
+プレッシャー|ストレスやプレッシャーの中でも力を発揮できる|緊張感のある環境で粘り強く働く仕事
+着実持続|計画的に物事を進め、確実にやり遂げる力|細かい作業やルーティンを正確にこなす仕事
+発想・チャレンジ|新しいアイデアを出し、挑戦する姿勢|創造的な発想や革新が求められる仕事
+企画構想|物事を構想し、計画を立てる力|全体を見渡して計画を練る仕事
+問題分析|課題や問題点を見つけ、分析する力|問題解決や改善策を考える仕事`},
+"組織適応性":{h:["組織適応性","概要","合っている社風"],r:`創造重視|新しいアイデアや発想、自由なチャレンジを重視するタイプ|革新や独創性を大切にし、自由な発想や挑戦を歓迎する組織
+結果重視|成果や実績、目標達成を重視するタイプ|実力や結果で評価される、目標達成を明確に求める組織
+調和重視|人間関係や協調、チームワークを重視するタイプ|メンバー同士の助け合いや和を大切にする、協調性を重視する組織
+秩序重視|ルールや手順、安定した運営を重視するタイプ|規律や手順を守ることを重視し、安定した環境を求める組織`}};
+const INFO={};
+Object.values(REF).forEach(s=>s.r=s.r.split("\n").map(l=>{const [n,d,j]=l.split("|");INFO[n]={d,j};return[n,d,j]}));
+
+
+// ===== 18尺度の言い換え文（各14文。同じ文章は一度も再登場しない）=====
+const S={
+"社会的内向性":"初対面の人には、自分から話しかけないほうだ|大勢で話すより、一人で過ごす時間のほうが落ち着く|自分の話を、あまり人にしないほうだ|人が集まる場では、聞き役に回ることが多い|休日は、人と会うより一人で過ごしたい|知らない人ばかりの場は、少し苦手だ|発言するより、黙って様子を見ていたい|親しい人以外とは、あまり深く関わらない|一人で黙々と作業しているほうが気楽だ|雑談の輪には、自分から入っていかないほうだ|飲み会より、静かな場所を選びたい|人前で目立つことは、なるべく避けたい|連絡は、必要なときだけ取るほうだ|人付き合いの数は、少なめでかまわない",
+"従順性":"上の人の指示には、素直に従うほうだ|自分の考えと違っても、周囲の意見に合わせることが多い|決められた手順どおりに動くほうが安心する|反対意見があっても、強く言い返さない|頼まれたことは、断らずに引き受けることが多い|指示されたことは、そのとおりにやり遂げたい|目上の人の判断には、従うべきだと思う|自分から異を唱えるより、言われたとおりにするほうだ|周りの人の意見を聞くと、つい流されやすい|ルールや決まりは、疑わずに守るほうだ|先輩や上司の言うことには、まず従ってみる|自分の主張よりも、相手の要望を優先しがちだ|指示の意図が分からなくても、まずその通りにする|人に言われたことは、素直に受け止めるほうだ",
+"内省性":"自分の行動を、あとで振り返ることが多い|うまくいかなかったとき、原因を深く考える|自分の考え方の癖について、考えることがある|一日の終わりに、その日の出来事を思い返す|行動する前に、自分の気持ちを見つめ直すほうだ|過去の失敗から、学べることを整理している|自分は何を大切にしているのかを、よく考える|物事を表面だけでなく、深く掘り下げて考えたい|何かを決める前に、自分の内面と向き合う時間をとる|自分の言動が周りにどう影響したか、振り返る|結論を出す前に、じっくりと考え込むほうだ|自分の長所と短所を、客観的に分析している|経験したことの意味を、あとから考え直す|考えを整理するために、時間をかけて立ち止まる",
+"独自性":"人とは違う独自の考え方をもっている|みんなが選ばない道を選ぶことが多い|自分なりの価値観を、大切にしている|周囲と意見が違っても、自分の見方を変えない|変わっていると言われることがある|他の人が思いつかない発想をするほうだ|流行よりも、自分だけのこだわりを優先する|前例のないやり方を考えるのが好きだ|常識にとらわれずに物事を見るほうだ|自分にしかない視点があると思う|ほかの人と同じことをするのは、つまらない|独自のアイデアを出して、周囲を驚かせたい|自分のスタイルを、持っていたい|物事の捉え方が、周囲とずれていると感じることがある",
+"達成意欲":"高い目標を掲げて努力したい|周囲より上の成果を出したいと思う|目標は、少し高めに設定するほうだ|結果にこだわって取り組みたい|現状に満足せず、さらに上を目指したい|成果を数字で出すことにやりがいを感じる|負けず嫌いなほうだ|一番になりたいという気持ちが強い|実績を積んで、評価されたい|目標を達成したときの喜びが、何よりの原動力だ|他の人が妥協するところでも、基準を下げたくない|ライバルがいると、力が入る|成長のチャンスには、貪欲でありたい|成果が出ないと、悔しくて仕方がない",
+"持続性":"一度始めたことは粘り強く続けるほうだ|結果が出なくても、最後までやり抜きたい|地道な作業でも、コツコツ積み重ねられる|途中で投げ出すことはほとんどない|時間がかかっても、あきらめずに続けられる|長い期間にわたって、同じことに取り組める|飽きても、決めたことは続けるほうだ|うまくいかなくても、もう一度やり直す|習慣にしたことは、長く続いている|単調な作業でも、集中力が切れにくい|少しずつでも、毎日続けることを大切にしている|壁にぶつかっても、すぐに投げ出さない|最後までやり遂げなければ気が済まない|長期のプロジェクトでも、気持ちが途切れにくい",
+"敏感性":"周囲の変化や人の気持ちによく気づくほうだ|相手の表情から、気分の変化を読み取れる|ちょっとした空気の変化にも気がつく|人の言葉の裏にある気持ちを考えてしまう|場の雰囲気が変わると、すぐに感じ取る|相手が無理をしていると、なんとなく分かる|周囲の小さな変化を見つけるのが得意だ|人のちょっとした一言が、いつまでも気になる|いつもと様子が違う人に、すぐ気がつく|音や光、においなどの変化にも敏感なほうだ|他人の機嫌を、無意識にうかがってしまう|人の感情の動きを、細かく感じ取るほうだ|周りの人の疲れや不調に、すぐ気づく|状況が変わりそうな気配を、早めに察知できる",
+"気分性":"気分によって、行動や調子が変わりやすい|嫌なことがあると、仕事や勉強に手がつかなくなる|機嫌が良いときと悪いときで、態度が違うと言われる|その日の気分で、やる気が大きく変わる|感情が顔や態度に出やすいほうだ|気持ちが乗らないと、集中できない|うれしいことがあると、行動が積極的になる|気分が沈むと、人との会話を避けたくなる|気分の波が、成果に影響すると感じる|感情の動きが、行動に直結しやすい|気分が落ち着くまで、何も手につかないことがある|調子の良い日と悪い日の差が大きい|その時の感情で、判断が変わることがある|気分転換をしないと、切り替えにくい",
+"慎重性":"何事も計画を立てて、慎重に進めたい|行動する前に、じっくり考えて準備するほうだ|リスクを事前に洗い出してから取りかかりたい|勢いで動くより、手順を確かめながら進めたい|ミスのないよう、何度も確認してから先へ進む|先の見通しが立つまでは、動き出さないほうだ|予定は余裕をもって組むようにしている|判断する前に、情報を集めて比較する|失敗しないよう、最悪の場合も想定しておく|提出する前には、必ず見直しをする|行き当たりばったりで進めることは避けたい|作業に入る前に、段取りを整理しておく|うまくいく根拠がそろうまで、決断を急がない|小さなことでも、事前に確認するのが習慣だ",
+"活動意欲":"新しいことには自分から積極的に取り組みたい|未経験のことでも、まず挑戦してみるほうだ|変化のある環境のほうが、やる気が出る|新しい機会があれば、すぐに手を挙げたい|まだ誰もやっていないことに関心が向く|慣れた作業より、新しい取り組みを選びたい|新しい場所や環境にも、すぐに飛び込める|思いついたことは、とりあえず試してみたい|毎日同じことの繰り返しでは、物足りない|新しい技術には、早めに触れてみたい|失敗を恐れず、まずやってみるほうだ|変化があるほうが、毎日が楽しい|自分から新しい企画を提案することが多い|未知の分野でも、興味が湧けば飛び込みたい",
+"自信性":"自分の能力や判断に自信がある|自分で決めたことは、正しいと思えるほうだ|大事な場面でも、自分の判断を信じられる|たいていのことは、自分ならできると思う|他人に頼らず、自分で決断できる|自分の考えを、堂々と主張できる|初めての課題でも、うまくやれる気がする|自分の強みをはっきり言える|失敗しても、自分への信頼は揺らがない|周りに反対されても、自分の判断を貫ける|緊張する場面でも、普段どおりの力を出せる|人と比べて、自分は劣っていないと思う|迷ったときでも、最終的には自分で決められる|自分の実力には、一定の自信がある",
+"身体活動性":"体を動かすことが好きだ|じっとしているより、動き回っているほうが落ち着く|休日は、外に出て体を動かしたい|座りっぱなしの作業は、苦手だ|思い立ったらすぐ席を立って動くほうだ|運動やスポーツをする機会を、よくつくる|一日中動き回っても、あまり疲れない|移動の多い仕事のほうが、性に合っている|待ち時間にも、つい体を動かしてしまう|机に向かうより、現場を歩き回りたい|活発に過ごした日のほうが、調子が良い|のんびり過ごすより、何かして動いていたい|階段があれば、迷わず階段を使うほうだ|身のこなしが軽いとよく言われる",
+"自責性":"失敗すると、自分のせいだと思いやすい|問題が起きると、まず自分に原因がないか考える|うまくいかないとき、自分を責めてしまう|周りの失敗でも、自分の責任のように感じることがある|迷惑をかけたと思うと、いつまでも引きずる|ミスをすると、必要以上に反省してしまう|トラブルのとき、真っ先に謝ってしまうほうだ|自分がもっとやれていればと、よく思う|結果が悪いと、自分の力不足だと考える|人のせいにするより、自分が悪いと考えがちだ|失敗した原因は、自分の準備不足だと思う|チームの不調は、自分に責任があると感じやすい|責められなくても、自分から責任を感じてしまう|期待に応えられなかったとき、強く落ち込む",
+"高揚性":"気分が高まりやすく、前向きなほうだ|楽しいことがあると、すぐに気持ちが盛り上がる|物事のいい面に目を向けるほうだ|たいていのことは、なんとかなると思う|テンションが上がると、周りを巻き込みたくなる|明るく元気だと言われることが多い|嫌なことがあっても、すぐに明るい気持ちに戻れる|わくわくすると、じっとしていられない|先のことは、楽観的に考えるほうだ|盛り上がる場の中心にいることが多い|うれしいときは、はしゃいでしまうほうだ|いつも前向きな気持ちで過ごしている|気持ちが沈んでも、一晩で立ち直れる|楽しい計画を考えると、気分が高まる",
+"回避性":"対立するくらいなら、自分が引くほうだ|リスクのある選択は、できるだけ避けたい|もめごとが起きそうなら、その場を離れたい|責任の重い役割は、引き受けたくない|面倒なことには、なるべく関わりたくない|意見がぶつかりそうなときは、黙っている|失敗しそうなことには、手を出さない|衝突を避けるために、本音を言わないことがある|難しい決断は、他の人に任せたい|波風の立たない道を選びたい|言いにくいことは、後回しにしてしまう|トラブルの気配があると、距離を取る|確実でないことには、挑戦したくない|厳しい状況からは、早めに離れたい",
+"批判性":"人の意見や行動の問題点が、すぐ目につく|他人の考えに、つい反論したくなる|納得できない意見には、はっきり異を唱える|人のやり方を見て、もっと良い方法があると思う|他人の欠点に、よく気がつくほうだ|相手の話の矛盾を、見逃さないほうだ|まわりの人の言動に、不満を感じることが多い|間違いを見つけたら、指摘せずにいられない|人の意見を、そのまま受け入れることは少ない|他人の仕事ぶりに、つい厳しい目を向けてしまう|話を聞きながら、あら探しをしてしまう|周囲の対応の悪さが、気になって仕方がない|納得できなければ、相手が誰でも意見を言う|人の改善点を、すぐに思いつく",
+"自己尊重性":"自分の意見や価値観を大切にしている|自分の考えを、簡単には曲げない|自分らしさを守ることを、大事にしたい|他人に何と言われても、自分の信念を持っている|自分の主張は、はっきり伝えるほうだ|自分の価値観に合わないことは、断る|自分の意見には、それなりの価値があると思う|周りに合わせるより、自分の考えを優先する|自分の気持ちを、後回しにしたくない|自分の考えを、まず主張してから話し合いたい|自分のやり方にこだわりがある|自分を大切にすることは、とても大事だと思う|意見を求められたら、堂々と述べられる|自分の信じる道を、進みたい",
+"懐疑思考性":"物事は、まず疑ってかかるほうだ|うまい話には、裏があると思う|人の言うことを、すぐには信じない|確かな証拠がないと、納得しない|親切にされると、何か狙いがあるのではと考える|初対面の人には、警戒心をもって接する|情報は、必ず他で裏を取りたい|人の本心は、簡単には分からないと思う|調子のいい人は、信用できない|説明を聞いても、本当だろうかと考える|簡単には、人に心を許さない|ニュースや噂は、鵜呑みにしないほうだ|約束を、本当に守ってくれるのか不安になる|人を信じる前に、しばらく様子を見る"
+};
+
+// ===== SPI3の構成：4側面 → 18尺度 =====
+const SIDES=[
+{n:"行動的側面",d:"物事にどう行動するか",t:["社会的内向性","内省性","身体活動性","慎重性","持続性"]},
+{n:"意欲的側面",d:"何にやる気を向けるか",t:["達成意欲","活動意欲"]},
+{n:"情緒的側面",d:"感情がどう動くか",t:["敏感性","自責性","気分性","独自性","自信性","高揚性"]},
+{n:"社会関係的側面",d:"他者や集団とどう関わるか",t:["従順性","回避性","批判性","自己尊重性","懐疑思考性"]}];
+const TR=[];
+SIDES.forEach((s,si)=>s.t.forEach((n,li)=>TR.push({n,si,li,d:INFO[n].d,j:INFO[n].j,W:S[n].split("|")})));
+const sideIdx=si=>TR.map((t,i)=>t.si==si?i:-1).filter(i=>i>=0);
+const SC={4:{V:[5,2,1/2,1/5],L:["Aに近い","どちらかといえばA","どちらかといえばB","Bに近い"]},
+ 6:{V:[5,3,2,1/2,1/3,1/5],L:["Aに強く近い","Aに近い","ややA","ややB","Bに近い","Bに強く近い"]}};
+const RL=["あてはまる","どちらかといえばあてはまる","どちらかといえばあてはまらない","あてはまらない"],RS=[3,2,1,0];
+const LIE=["今までに一度もうそをついたことがない","一度も人の悪口を言ったことがない","生まれてから一度も、約束を破ったことがない","他人に腹を立てたことは、一度もない"];
+const PART=["","第1部　A寄りか、B寄りか","第2部　どの程度、自分にあてはまるか","第3部　A寄りか、B寄りか"];
+const INTRO=["","2つの文章のうち、自分に近い方を選びます。","1つの文章が、自分にどの程度あてはまるかを選びます。","第1部と同じ形式です。"];
+const RIT=[0,0,0,.58,.9,1.12,1.24];
+let Q=[],ans=[],idx=0,canBack=false,LIM=8,MODE="std",SZ=4,V=SC[4].V,timer=null,introPart=0;
+const sh=a=>{for(let i=a.length-1;i>0;i--){const j=Math.random()*(i+1)|0;[a[i],a[j]]=[a[j],a[i]]}return a};
+const ones=m=>Array.from({length:m},()=>Array(m).fill(1));
+const val=k=>k<0?1:V[k];
+const share=(a,b)=>a.ts.some(x=>b.ts.includes(x));
+// 同じ尺度（＝言い換え）の問いが連続しないよう並べる
+function arrange(items){
+ for(let t=0;t<3000;t++){
+  const rest=sh(items.slice()),res=[],cnt=Array(TR.length).fill(0);
+  rest.forEach(q=>q.ts.forEach(x=>cnt[x]++));
+  while(rest.length){
+   const last=res[res.length-1];let best=-1,bs=-1;
+   rest.forEach((q,i)=>{if(last&&share(last,q))return;const s=q.ts.reduce((p,x)=>p+cnt[x],0)+Math.random();if(s>bs){bs=s;best=i}});
+   if(best<0)break;
+   const q=rest.splice(best,1)[0];q.ts.forEach(x=>cnt[x]--);res.push(q);
+  }
+  if(!rest.length)return res;
+ }
+ return sh(items);
+}
+// 1周分のA/B問題：側面内の総当たり36問＋側面間の比較12問（各側面の組から2問）
+function roundItems(r,qs){
+ const it=[];
+ const mk=(kind,a,b)=>{const o=Math.random()<.5;return{type:"ab",kind,round:r,l:o?a:b,r:o?b:a,ts:[a,b]}};
+ SIDES.forEach((s,si)=>{const ts=sideIdx(si);for(let i=0;i<ts.length;i++)for(let j=i+1;j<ts.length;j++)it.push(mk("in",ts[i],ts[j]))});
+ const nx=si=>{if(!qs[si].length)qs[si]=sh(sideIdx(si));return qs[si].pop()};
+ for(let a=0;a<4;a++)for(let b=a+1;b<4;b++)for(let k=0;k<2;k++)it.push(mk("x",nx(a),nx(b)));
+ return it;
+}
+const refTable=()=>Object.entries(REF).map(([k,s])=>`<p><b>${k}</b></p><div class="tbl"><table class="ref"><tr>${s.h.map(h=>`<th>${h}</th>`).join("")}</tr>${s.r.map(([a,b,c])=>`<tr class="${k=="性格特徴"?"on":""}"><td>${a}</td><td>${b}</td><td>${c}</td></tr>`).join("")}</table></div>`).join("");
+function menu(){
+ clearInterval(timer);
+ document.getElementById("app").innerHTML=`<div class="card"><b>SPI3の性格検査の構成（調べた内容）</b>
+ <ul class="sm"><li>3部構成で、第1部（約90問）と第3部（約70問）は「A寄りかB寄りか」、第2部（約130問）は「どの程度あてはまるか」を、いずれも4択で答えます。</li>
+ <li>約300問を30〜35分で解くため、1問あたり約8秒です。</li>
+ <li>性格特徴は4つの側面・18の尺度で測り、同じ内容を言い換えて繰り返し聞くことで、回答の矛盾や、うその回答を確認します。</li></ul>
+ <b>このサイトでの階層AHP（4側面 → 18尺度）</b>
+ <div class="tbl"><table class="ref"><tr><th>側面</th><th>尺度</th></tr>${SIDES.map(s=>`<tr><td>${s.n}（${s.d}）</td><td>${s.t.join("、")}</td></tr>`).join("")}</table></div>
+ <p class="sm">側面どうし（6組）と、側面の中の尺度どうし（10＋1＋15＋10＝36組）を総当たりで比べるので、18尺度の全153組を直接比べなくても、全尺度に重みが付きます。</p>
+ <details><summary>検査の特性表（全36項目）</summary>${refTable()}</details></div>
+ <div class="card"><b>設定</b>
+ <p>範囲：<label><input type="radio" name="m" value="short"> 第1部のみ（48問）</label><label><input type="radio" name="m" value="std" checked> 第1部＋第2部（88問）</label><label><input type="radio" name="m" value="full"> 第1部〜第3部（136問）</label></p>
+ <p>選択肢：<label><input type="radio" name="s" value="4" checked> 4択（SPI形式）</label><label><input type="radio" name="s" value="6"> 6択</label></p>
+ <p>制限時間（1問）：<label><input type="radio" name="t" value="8" checked> 8秒</label><label><input type="radio" name="t" value="12"> 12秒</label><label><input type="radio" name="t" value="20"> 20秒</label></p>
+ <p class="sm">同じ文章は出ず、同じ尺度の問いが連続することもありません。時間切れは「どちらでもない」として扱います。戻れるのは1つ前までです。再出題の一致度は、第3部まで解いたときに測れます。</p>
+ <button class="btn pri" id="go">開始</button></div>`;
+ document.getElementById("go").onclick=()=>{
+  MODE=document.querySelector("[name=m]:checked").value;SZ=+document.querySelector("[name=s]:checked").value;
+  V=SC[SZ].V;LIM=+document.querySelector("[name=t]:checked").value;start()};
+}
+function start(){
+ const qs=[[],[],[],[]],W=TR.map(t=>sh(t.W.slice()));
+ const p1=arrange(roundItems(0,qs));
+ let p2=[];
+ if(MODE!=="short"){
+  TR.forEach((t,i)=>{for(let k=0;k<2;k++)p2.push({type:"rate",ts:[i],text:W[i].pop()})});
+  LIE.forEach(x=>p2.push({type:"rate",ts:[],lie:true,text:x}));
+  p2=arrange(p2);
+ }
+ const p3=MODE==="full"?arrange(roundItems(1,qs)):[];
+ Q=[];[p1,p2,p3].forEach((p,i)=>p.forEach(q=>{q.part=i+1;Q.push(q)}));
+ Q.forEach(q=>{if(q.type=="ab"){q.tl=W[q.l].pop();q.tr=W[q.r].pop()}});
+ ans=new Array(Q.length).fill(undefined);idx=0;canBack=false;introPart=1;render();
+}
+function advance(){
+ if(idx<Q.length-1){idx++;canBack=true;introPart=Q[idx].part!==Q[idx-1].part?Q[idx].part:0;render()}else result();
+}
+function render(){
+ clearInterval(timer);
+ const app=document.getElementById("app"),q=Q[idx];
+ if(introPart){
+  app.innerHTML=`<div class="card"><b>${PART[introPart]}</b><p class="sm">${INTRO[introPart]}</p><button class="btn pri" id="st">始める</button></div>`;
+  document.getElementById("st").onclick=()=>{introPart=0;render()};return;
+ }
+ const ab=q.type=="ab",n=ab?SZ:4,labs=ab?SC[SZ].L:RL;
+ const body=ab?`<div class="pair"><div><b>A</b>&nbsp;${q.tl}</div><div><b>B</b>&nbsp;${q.tr}</div></div>`:`<div class="pair one"><div>${q.text}</div></div>`;
+ const btn=labs.map((l,k)=>`<div class="opt"><button class="${k==0||k==n-1?"ex":(n==6&&(k==2||k==3)?"in6":"")}" data-k="${k}" aria-label="${l}">${ans[idx]===k?"●":""}</button>${n==4?`<small>${l}</small>`:""}</div>`).join("");
+ app.innerHTML=`<div class="bar"><i style="width:${idx/Q.length*100}%"></i></div>
+ <div class="bar tbar"><i id="tb" style="width:100%"></i></div>
+ <div class="card"><div class="sm">${PART[q.part]}　${idx+1} / ${Q.length}</div>${body}
+ <div class="scale">${btn}</div>${n==6?'<div class="lab"><span>Aに近い</span><span>Bに近い</span></div>':""}
+ <p style="margin-top:14px"><button class="btn" id="back" ${canBack?"":"disabled"}>1つ前に戻る</button><span class="sm">戻れるのは1つ前までです</span></p></div>`;
+ document.querySelectorAll(".scale button").forEach(b=>b.onclick=()=>{ans[idx]=+b.dataset.k;advance()});
+ document.getElementById("back").onclick=()=>{idx--;canBack=false;introPart=0;render()};
+ const t0=Date.now(),tb=document.getElementById("tb");
+ timer=setInterval(()=>{
+  const e=(Date.now()-t0)/1000;tb.style.width=Math.max(0,1-e/LIM)*100+"%";
+  if(e>=LIM){ans[idx]=-1;advance()}
+ },100);
+}
+// ===== 解析 =====
+function eigN(A){
+ const m=A.length;let w=Array(m).fill(1/m);
+ for(let t=0;t<200;t++){const x=A.map(r=>r.reduce((s,a,j)=>s+a*w[j],0));const s=x.reduce((a,b)=>a+b);w=x.map(v=>v/s)}
+ const Aw=A.map(r=>r.reduce((s,a,j)=>s+a*w[j],0)),lam=Aw.reduce((s,v,i)=>s+v/w[i],0)/m;
+ const CI=m>2?(lam-m)/(m-1):0,RI=RIT[m]||0;
+ return{w,lam,CI,RI,CR:RI?CI/RI:0};
+}
+const gmM=ms=>ms[0].map((row,i)=>row.map((_,j)=>Math.pow(ms.reduce((p,m)=>p*m[i][j],1),1/ms.length)));
+function build(r){
+ const Wm=SIDES.map(s=>ones(s.t.length)),xs={};
+ Q.forEach((q,i)=>{
+  if(q.type!=="ab"||q.round!==r)return;
+  const v=val(ans[i]),L=TR[q.l],R=TR[q.r];
+  if(q.kind=="in"){Wm[L.si][L.li][R.li]=v;Wm[L.si][R.li][L.li]=1/v}
+  else{const a=L.si,b=R.si,k=Math.min(a,b)+"-"+Math.max(a,b);(xs[k]=xs[k]||[]).push(Math.log(a<b?v:1/v))}
+ });
+ const X=ones(4);
+ for(const k in xs){const [a,b]=k.split("-").map(Number),g=Math.exp(xs[k].reduce((p,c)=>p+c,0)/xs[k].length);X[a][b]=g;X[b][a]=1/g}
+ return{Wm,X};
+}
+function hier(Wm,X){
+ const se=eigN(X),loc=Wm.map(eigN),gw=[];let C=se.CI,R=se.RI;
+ SIDES.forEach((s,si)=>{C+=se.w[si]*loc[si].CI;R+=se.w[si]*loc[si].RI;s.t.forEach((_,li)=>gw.push(se.w[si]*loc[si].w[li]))});
+ return{se,loc,gw,H:R?C/R:0};
+}
+function cycles(A,names){
+ const m=A.length,b=(i,j)=>A[i][j]>1+1e-9,c=[];
+ for(let i=0;i<m;i++)for(let j=i+1;j<m;j++)for(let k=j+1;k<m;k++)
+  if((b(i,j)&&b(j,k)&&b(k,i))||(b(j,i)&&b(k,j)&&b(i,k)))c.push([names[i],names[j],names[k]].join(" / "));
+ return c;
+}
+const pos=v=>{let k=V.findIndex(x=>Math.abs(x-v)<1e-9);return k>=0?k:V.length-1-V.findIndex(x=>Math.abs(x-1/v)<1e-9)};
+const rank=a=>{const s=a.map((v,i)=>[v,i]).sort((x,y)=>x[0]-y[0]),r=Array(a.length);
+ for(let i=0;i<s.length;){let j=i;while(j+1<s.length&&s[j+1][0]==s[i][0])j++;const av=(i+j)/2+1;for(let k=i;k<=j;k++)r[s[k][1]]=av;i=j+1}return r};
+const pearson=(x,y)=>{const n=x.length,mx=x.reduce((a,b)=>a+b)/n,my=y.reduce((a,b)=>a+b)/n;let sxy=0,sx=0,sy=0;
+ for(let i=0;i<n;i++){sxy+=(x[i]-mx)*(y[i]-my);sx+=(x[i]-mx)**2;sy+=(y[i]-my)**2}return sx&&sy?sxy/Math.sqrt(sx*sy):0};
+function analyze(){
+ const R=MODE==="full"?2:1,rounds=[];
+ for(let r=0;r<R;r++)rounds.push(build(r));
+ const Wc=SIDES.map((_,s)=>gmM(rounds.map(b=>b.Wm[s]))),Xc=gmM(rounds.map(b=>b.X));
+ const all=hier(Wc,Xc),per=rounds.map(b=>hier(b.Wm,b.X)),ag=[];
+ if(R==2){
+  const [b0,b1]=rounds;
+  SIDES.forEach((s,si)=>{const m=s.t.length;for(let i=0;i<m;i++)for(let j=i+1;j<m;j++){
+   const v0=b0.Wm[si][i][j],v1=b1.Wm[si][i][j];if(v0==1||v1==1)continue;
+   ag.push({a:s.t[i],b:s.t[j],same:(v0>1)===(v1>1),gap:Math.abs(pos(v0)-pos(v1)),w0:v0>1?s.t[i]:s.t[j],w1:v1>1?s.t[i]:s.t[j]})}});
+  for(let a=0;a<4;a++)for(let b=a+1;b<4;b++){
+   const v0=b0.X[a][b],v1=b1.X[a][b];if(Math.abs(Math.log(v0))<1e-9||Math.abs(Math.log(v1))<1e-9)continue;
+   ag.push({a:SIDES[a].n,b:SIDES[b].n,same:(v0>1)===(v1>1),gap:null,w0:v0>1?SIDES[a].n:SIDES[b].n,w1:v1>1?SIDES[a].n:SIDES[b].n})}
+ }
+ let rate=null;
+ if(MODE!=="short"){
+  const sc=TR.map(()=>[]);let lie=0,lieN=0;
+  Q.forEach((q,i)=>{if(q.type!=="rate"||ans[i]<0)return;const s=RS[ans[i]];if(q.lie){lieN++;if(s>=2)lie++}else sc[q.ts[0]].push(s)});
+  const ts=sc.map(a=>a.length?a.reduce((x,y)=>x+y)/a.length:null),ok=ts.map((v,i)=>v==null?-1:i).filter(i=>i>=0);
+  const rho=ok.length>=4?pearson(rank(ok.map(i=>ts[i])),rank(ok.map(i=>all.gw[i]))):null;
+  const pa=sc.filter(a=>a.length==2);
+  rate={rho,lie,lieN,agree:pa.filter(a=>Math.abs(a[0]-a[1])<=1).length,np:pa.length};
+ }
+ let tot=0,ext=0,hed=0,to=0;
+ Q.forEach((q,i)=>{if(ans[i]<0){to++;return}tot++;const n=q.type=="ab"?SZ:4,k=ans[i];
+  if(k==0||k==n-1)ext++;else if(n==4?(k==1||k==2):(k==2||k==3))hed++});
+ const cyc=[];
+ SIDES.forEach((s,si)=>{if(s.t.length>=3)cyc.push(...cycles(Wc[si],s.t))});
+ cyc.push(...cycles(Xc,SIDES.map(s=>s.n)));
+ return{R,all,per,ag,rate,tot,ext,hed,to,cyc,Wc,Xc};
+}
+const crc=c=>c<=.1?"ok":c<=.15?"warn":"bad";
+const fmt=v=>Math.abs(v-1)<1e-9?"1":v>1?Math.round(v*100)/100:"1/"+Math.round(1/v*100)/100;
+const cell=v=>{const p=v>1?Math.min(55,Math.log(v)/Math.log(5)*55):0;return `<td style="background:color-mix(in srgb,#0000aa ${p}%,#ffffff)">${fmt(v)}</td>`};
+const tbl=(A,names)=>`<div class="tbl"><table><tr><th></th>${names.map(n=>`<th>${n}</th>`).join("")}</tr>${A.map((r,i)=>`<tr><th>${names[i]}</th>${r.map(cell).join("")}</tr>`).join("")}</table></div>`;
+function explain(X){
+ let bi=0,bj=1;
+ for(let i=0;i<4;i++)for(let j=0;j<4;j++)if(i!=j&&X[i][j]>X[bi][bj])[bi,bj]=[i,j];
+ const v=X[bi][bj];
+ return `<div class="card explain"><b>この行列の読み方</b><ul>
+ <li>行 <i>i</i>・列 <i>j</i> の値 <code>a<sub>ij</sub></code> は「<i>j</i> と比べて、<i>i</i> がどれだけ自分に近いか」を表します。</li>
+ <li><code>a<sub>ij</sub> &gt; 1</code>：<i>i</i> の方が <i>j</i> より自分に近い（「Aに近い」で5、「どちらかといえばA」で2。6択のときは5、3、2）。複数の問いや2周分の平均なので、中間値も出ます。</li>
+ <li><code>a<sub>ij</sub> = 1</code>：同程度。時間切れの問いや、答えが打ち消し合った組がここに近づきます。</li>
+ <li><code>a<sub>ij</sub> &lt; 1</code>：<i>j</i> の方が自分に近い（1/2、1/5など）。分数で表示しています。</li>
+ <li>逆の位置は逆数の関係です：<code>a<sub>ji</sub> = 1 / a<sub>ij</sub></code>。対角線は常に 1 です。</li>
+ <li>この表は4つの側面どうしの比較です。側面の中の尺度どうしの行列も、読み方は同じです。</li>
+ <li>あなたの表での例：行「${SIDES[bi].n}」・列「${SIDES[bj].n}」の値は ${fmt(v)} です。「${SIDES[bj].n}」より「${SIDES[bi].n}」の方が、約 ${fmt(v)} 倍自分に近いと答えたことを示します。</li>
+ <li>一貫していれば、<code>a<sub>ik</sub> = a<sub>ij</sub> × a<sub>jk</sub></code> が成り立ちます（例：A が B の 3 倍、B が C の 2 倍なら、A は C の 6 倍）。このずれが大きいほど CR と H が大きくなります。</li></ul></div>`;
+}
+function result(){
+ clearInterval(timer);
+ const a=analyze(),{R,all,per,ag,rate,tot,ext,hed,to,cyc,Wc,Xc}=a;
+ const msg=c=>c<=.1?"一貫性は高い回答です。":c<=.15?"概ね一貫していますが、一部に矛盾があります。":"矛盾が目立ちます。判断基準が揺れている可能性があります。";
+ let agCard="";
+ if(ag.length){
+  const same=ag.filter(x=>x.same).length,r0=same/ag.length,gs=ag.filter(x=>x.gap!=null),gap=gs.length?gs.reduce((s,x)=>s+x.gap,0)/gs.length:0,flip=ag.filter(x=>!x.same);
+  agCard=`<div class="card"><div>言い換え再出題の一致度（第1部と第3部、${ag.length}組）</div>
+  <div class="big ${r0>=.85?"ok":r0>=.7?"warn":"bad"}">${(r0*100).toFixed(0)}%</div>
+  <p class="sm">同じ組み合わせを別の文章で聞いたとき、同じ側を選んだ割合です（${same} / ${ag.length}）。尺度どうしの段階のずれは平均 ${gap.toFixed(1)}。時間切れの問いは除いています。</p>
+  ${flip.length?`<b>答えが逆転した組（${flip.length}件）</b><ul>${flip.slice(0,12).map(x=>`<li>${x.a} と ${x.b}：第1部は${x.w0}、第3部は${x.w1}</li>`).join("")}</ul>${flip.length>12?`<p class="sm">ほか ${flip.length-12} 組</p>`:""}`:"<p>逆転した組はありませんでした。</p>"}</div>`;
+ }
+ let rateCard="";
+ if(rate){
+  rateCard=`<div class="card"><b>第2部（単独評価）との照らし合わせ</b><ul>
+  <li>A/B形式の重視度と、単独評価の高さの順位相関：${rate.rho==null?"算出できません":`<b class="${rate.rho>=.6?"ok":rate.rho>=.3?"warn":"bad"}">${rate.rho.toFixed(2)}</b>（1に近いほど、2つの形式で答えが一致）`}</li>
+  <li>同じ尺度の2文への答えが近い（差が1以内）尺度：${rate.agree} / ${rate.np}</li>
+  <li>虚偽尺度（「一度もない」型の文）に「あてはまる寄り」と答えた数：<b class="${rate.lie>=3?"bad":rate.lie>=2?"warn":"ok"}">${rate.lie} / ${rate.lieN}</b>${rate.lie>=3?"　見栄えを良くしようとした回答と見られる可能性があります。":""}</li></ul></div>`;
+ }
+ const so=all.se.w.map((v,i)=>[v,i]).sort((x,y)=>y[0]-x[0]),to2=TR.map((t,i)=>[all.gw[i],i]).sort((x,y)=>y[0]-x[0]);
+ document.getElementById("app").innerHTML=`
+ <div class="card"><div>階層整合比 H（全体の矛盾${R==2?"・2周分を合成":""}）</div><div class="big ${crc(all.H)}">${all.H.toFixed(3)}</div>
+ <div>${msg(all.H)}（0.1以下で良好、0.15以下で許容）</div>
+ <p class="sm">側面どうしのCR：${all.se.CR.toFixed(3)}（RI(n=4)=0.90）。時間切れ ${to} 問${R==2?"<br>周回別のH："+per.map((p,i)=>`${i+1}周目 ${p.H.toFixed(3)}`).join("、"):""}</p>
+ <div class="tbl"><table><tr><th>側面</th><th>尺度数</th><th>側面内のCR</th></tr>${SIDES.map((s,si)=>`<tr><td>${s.n}</td><td>${s.t.length}</td><td class="${all.loc[si].RI?crc(all.loc[si].CR):""}">${all.loc[si].RI?all.loc[si].CR.toFixed(3):"－（2尺度のため算出なし）"}</td></tr>`).join("")}</table></div></div>
+ ${agCard}${rateCard}
+ <div class="card"><b>あなたの重視度</b>
+ <p class="sm">側面の重み</p>
+ ${so.map(([v,i])=>`<div class="row"><span>${SIDES[i].n.replace("的側面","")}</span><span class="w"><i style="width:${v*100/so[0][0]}%"></i></span><span>${(v*100).toFixed(1)}%</span></div>`).join("")}
+ <p class="sm">尺度の総合重み（側面の重み × 側面内の重み）</p>
+ ${to2.map(([v,i])=>`<div class="row" title="${SIDES[TR[i].si].n}"><span>${TR[i].n}</span><span class="w"><i style="width:${v*100/to2[0][0]}%"></i></span><span>${(v*100).toFixed(1)}%</span></div>`).join("")}
+ <p><b>上位3つの特徴</b></p><ul>${to2.slice(0,3).map(([,i])=>`<li><b>${TR[i].n}</b>：${TR[i].d}。高いと向いている仕事：${TR[i].j}</li>`).join("")}</ul></div>
+ <div class="card"><b>回答の傾向</b>
+ <ul><li>極端な回答（両端の選択肢）：${tot?(ext/tot*100).toFixed(0):0}%</li><li>あいまいな回答（「どちらかといえば」など）：${tot?(hed/tot*100).toFixed(0):0}%</li><li>時間切れ：${to} 問</li></ul>
+ <p class="sm">実際のSPIでは、「どちらかといえば」に偏るとあいまい、両端に偏ると極端な性格と見られることがあるとされています。</p></div>
+ <div class="card"><b>矛盾のある組み合わせ（${cyc.length}件）</b>
+ ${cyc.length?`<p class="sm">3項目で「AよりB、BよりC、CよりA」と回って、順序が決まらない組です。</p><ul>${cyc.map(c=>`<li>${c}</li>`).join("")}</ul>`:"<p>循環する組はありませんでした。</p>"}</div>
+ <div class="card"><b>一対比較行列 A（側面どうし）</b>${tbl(Xc,SIDES.map(s=>s.n.replace("的側面","")))}</div>
+ ${explain(Xc)}
+ <div class="card"><details><summary>側面の中の一対比較行列を見る</summary>${SIDES.map((s,si)=>`<p><b>${s.n}</b></p>${tbl(Wc[si],s.t)}`).join("")}<p class="sm">読み方は上の説明と同じです。</p></details></div>
+ <button class="btn pri" id="re">もう一度やる</button>`;
+ document.getElementById("re").onclick=menu;
+}
+menu();
+</script></body></html>
