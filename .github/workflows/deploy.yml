@@ -33,10 +33,27 @@ jobs:
         run: |
           distribution_id="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}"
           distribution_id="$(echo "${distribution_id}" | tr -d '[:space:]')"
+          distribution_id="${distribution_id%/}"
           distribution_id="${distribution_id##*/}"
+          distribution_id="${distribution_id%%[\?#]*}"
 
           if [ -z "${distribution_id}" ]; then
             echo "CLOUDFRONT_DISTRIBUTION_ID secret is empty or invalid."
+            exit 1
+          fi
+
+          if [[ "${distribution_id}" == *.* ]]; then
+            resolved_distribution_id="$(aws cloudfront list-distributions \
+              --query "DistributionList.Items[?DomainName=='${distribution_id}'].Id | [0]" \
+              --output text)"
+
+            if [ "${resolved_distribution_id}" != "None" ] && [ -n "${resolved_distribution_id}" ]; then
+              distribution_id="${resolved_distribution_id}"
+            fi
+          fi
+
+          if ! [[ "${distribution_id}" =~ ^[A-Z0-9]+$ ]]; then
+            echo "CLOUDFRONT_DISTRIBUTION_ID must resolve to a valid CloudFront distribution ID."
             exit 1
           fi
 
